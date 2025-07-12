@@ -1,0 +1,40 @@
+﻿@model List<UserManagement.MVC.Models.UserViewModel>
+@{
+    ViewData["Title"] = "All Users";
+}
+
+<h2>All Users</h2>
+
+<a class="btn btn-success mb-3" href="/User/Add">+ Add New User</a>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Roles</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.FullName</td>
+                    <td>@user.Email</td>
+                    <td>@(user.Roles != null ? string.Join(", ", user.Roles) : "-")</td>
+                    <td>
+                        <a class="btn btn-sm btn-warning" href="/User/Edit/@user.Id">Edit</a>
+                        <a class="btn btn-sm btn-danger" href="/User/Delete/@user.Id" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
