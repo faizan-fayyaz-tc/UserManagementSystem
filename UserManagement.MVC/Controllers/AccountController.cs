@@ -42,10 +42,12 @@ namespace UserManagement.MVC.Controllers
 
             var name = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             var role = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            var id = jwt.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
             HttpContext.Session.SetString("JWToken", token);
             HttpContext.Session.SetString("UserName", name);
             HttpContext.Session.SetString("UserRole", role);
+            HttpContext.Session.SetString("UserId", id);
 
             var claims = new List<Claim>
     {
@@ -59,6 +61,15 @@ namespace UserManagement.MVC.Controllers
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
+
+            if (role == "Admin")
+            {
+                return RedirectToAction("Index", "Dashboard");
+            }
+            else if (role == "User")
+            {
+                return RedirectToAction("Profile", "User"); 
+            }
 
             return RedirectToAction("Index", "Dashboard");
         }

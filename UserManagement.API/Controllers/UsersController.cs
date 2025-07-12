@@ -36,6 +36,7 @@ namespace UserManagement.API.Controllers
                     user.Id,
                     user.FullName,
                     user.Email,
+                    user.ProfilePicturePath,
                     Roles = roles 
                 });
             }
@@ -44,7 +45,7 @@ namespace UserManagement.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<IActionResult> GetUserById(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -63,6 +64,7 @@ namespace UserManagement.API.Controllers
                 user.Id,
                 user.FullName,
                 user.Email,
+                user.ProfilePicturePath,
                 Roles = roles 
             });
         }
@@ -102,6 +104,37 @@ namespace UserManagement.API.Controllers
                 return BadRequest(result.Errors);
 
             return Ok("User deleted");
+        }
+
+        [HttpPost("{id}/upload-profile")]
+        public async Task<IActionResult> UploadProfilePicture(string id, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound("User not found");
+
+            // Generate unique filename
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Save path to DB
+            var request = HttpContext.Request;
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            user.ProfilePicturePath = $"{baseUrl}/uploads/{fileName}";
+
+            await _userManager.UpdateAsync(user);
+
+            return Ok("Profile picture uploaded successfully");
         }
     }
 }

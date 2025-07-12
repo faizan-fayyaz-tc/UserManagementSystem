@@ -37,14 +37,13 @@ namespace UserManagement.MVC.Controllers
             return View(users);
         }
 
-        // Show form
         [HttpGet]
         public IActionResult Add()
         {
             return View();
         }
 
-        // Handle form submission
+       
         [HttpPost]
         public async Task<IActionResult> Add(RegisterViewModel model)
         {
@@ -67,7 +66,6 @@ namespace UserManagement.MVC.Controllers
             return View(model);
         }
 
-        // GET: /User/Edit/abc123
         [HttpGet]
         public async Task<IActionResult> Edit(string id)
         {
@@ -96,7 +94,6 @@ namespace UserManagement.MVC.Controllers
             return View(model);
         }
 
-        // POST: /User/Edit/abc123
         [HttpPost]
         public async Task<IActionResult> Edit(string id, RegisterViewModel model)
         {
@@ -140,6 +137,63 @@ namespace UserManagement.MVC.Controllers
             return RedirectToAction("All");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Account");
+
+            var client = _httpClientFactory.CreateClient("API");
+            var token = HttpContext.Session.GetString("JWToken");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await client.GetAsync($"users/{userId}");
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewBag.Error = "Failed to load user profile.";
+                return View(new UserViewModel());  
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+            var user = JsonSerializer.Deserialize<UserViewModel>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            return View(user); 
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
+        {
+            var userId = HttpContext.Session.GetString("UserId");
+            if (string.IsNullOrEmpty(userId))
+                return RedirectToAction("Login", "Account");
+
+            if (file == null || file.Length == 0)
+            {
+                TempData["Error"] = "Please select a valid image.";
+                return RedirectToAction("Profile");
+            }
+
+            var client = _httpClientFactory.CreateClient("API");
+            var token = HttpContext.Session.GetString("JWToken");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var content = new MultipartFormDataContent();
+            content.Add(new StreamContent(file.OpenReadStream()), "file", file.FileName);
+
+            var response = await client.PostAsync($"users/{userId}/upload-profile", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["Message"] = " Profile picture uploaded successfully.";
+            }
+            else
+            {
+                TempData["Error"] = " Upload failed. Please try again.";
+            }
+
+            return RedirectToAction("Profile");
+        }
 
 
     }

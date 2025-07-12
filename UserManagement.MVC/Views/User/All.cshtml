@@ -6,6 +6,10 @@
 <h2>All Users</h2>
 
 <a class="btn btn-success mb-3" href="/User/Add">+ Add New User</a>
+<div class="mt-4">
+    <a class="btn btn-outline-danger" asp-controller="Account" asp-action="Logout">🚪 Logout</a>
+</div>
+
 
 @if (ViewBag.Error != null)
 {
@@ -20,6 +24,7 @@ else
                 <th>Email</th>
                 <th>Roles</th>
                 <th>Actions</th>
+                <th>Profile</th>
             </tr>
         </thead>
         <tbody>
@@ -33,6 +38,17 @@ else
                         <a class="btn btn-sm btn-warning" href="/User/Edit/@user.Id">Edit</a>
                         <a class="btn btn-sm btn-danger" href="/User/Delete/@user.Id" onclick="return confirm('Are you sure you want to delete this user?');">Delete</a>
                     </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(user.ProfilePicturePath))
+                        {
+                            <img src="@user.ProfilePicturePath" alt="Profile" width="40" height="40" class="rounded-circle" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">No Image</span>
+                        }
+                    </td>
+
                 </tr>
             }
         </tbody>

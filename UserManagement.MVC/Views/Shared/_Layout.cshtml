@@ -21,13 +21,14 @@
                     
                     @{
                         var role = Context.Session.GetString("UserRole");
+                        var userName = Context.Session.GetString("UserName");
                     }
 
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
                         </li>
-
+                      
                         @if (role == "Admin")
                         {
                             <li class="nav-item">
@@ -39,7 +40,12 @@
                         }
 
                         
+                            <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Users" asp-action="Profile">My Profile</a>
+                            </li>
+                        
                     </ul>
+
 
                 </div>
             </div>

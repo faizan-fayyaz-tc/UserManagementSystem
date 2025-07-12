@@ -86,6 +86,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+//Serve files from wwwroot
+app.UseStaticFiles();
+
 app.UseAuthentication();  
 app.UseAuthorization();
 
