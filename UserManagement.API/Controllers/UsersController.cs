@@ -70,26 +70,29 @@ namespace UserManagement.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(string id, [FromBody] RegisterDto model)
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto model)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound("User not found");
 
-            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var isAdmin = User.IsInRole("Admin");
-
-            if (currentUserId != user.Id && !isAdmin)
-                return Forbid("You can only update your own profile");
-
             user.FullName = model.FullName;
-            user.Email = model.Email;
-            user.UserName = model.Email;
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+            if(!string.IsNullOrEmpty(model.Role))
+            {
+                await _userManager.AddToRoleAsync(user, model.Role);
+            }
 
             var result = await _userManager.UpdateAsync(user);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
 
-            return Ok("User updated");
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok("User Updated Successfully");
         }
 
         [HttpDelete("{id}")]

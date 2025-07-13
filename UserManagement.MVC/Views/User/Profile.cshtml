@@ -3,7 +3,7 @@
     ViewData["Title"] = "My Profile";
 }
 
-<h2>👤 My Profile</h2>
+<h2><strong>Hi </strong>@Model.FullName</h2>
 
 @if (TempData["Message"] != null)
 {
@@ -22,13 +22,24 @@
                 <img src="@(!string.IsNullOrEmpty(Model.ProfilePicturePath) ? Model.ProfilePicturePath : "https://via.placeholder.com/120")"
                      width="120" height="120" class="rounded-circle border" />
                 <div class="mt-4">
-                    <a class="btn btn-outline-danger" asp-controller="Account" asp-action="Logout">🚪 Logout</a>
+                    <a class="btn btn-outline-danger box-arrow-right" asp-controller="Account" asp-action="Logout">Logout</a>
+                    <p>
+                        Off icon on a button:
+                        <button type="button" class="btn btn-default btn-sm">
+                            <span class="glyphicon glyphicon-off"></span> Off
+                        </button>
+                    </p>
+                    <p>
+                        Off icon on a styled link button:
+                        <a href="#" class="btn btn-info btn-lg">
+                            <span class="glyphicon glyphicon-off"></span> Off
+                        </a>
+                    </p>
                 </div>
-
             </div>
             <div class="ms-4">
                 <h4>@Model.FullName</h4>
-                <p><strong>Email:</strong> @Model.Email</p>
+                <p>@Model.Email</p>
             </div>
         </div>
 

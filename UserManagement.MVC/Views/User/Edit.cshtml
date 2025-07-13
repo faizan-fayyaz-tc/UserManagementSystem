@@ -4,46 +4,36 @@
     ViewData["Title"] = "Edit User";
 }
 
-<h2>Edit User</h2>
+<div class="card shadow-sm p-4 mt-4">
+    <h4 class="mb-4">
+        ✏️ Update User: <span class="text-primary">@ViewBag.UserName</span>
+    </h4>
 
-@if (ViewBag.Error != null)
-{
-    <div class="alert alert-danger">@ViewBag.Error</div>
-}
+    <form asp-action="Edit" asp-controller="User" asp-route-id="@ViewBag.UserId" method="post">
 
-<form asp-action="Edit" method="post">
-    <input type="hidden" name="id" value="@ViewBag.UserId" />
+        <div class="mb-3">
+            <label asp-for="FullName" class="form-label fw-semibold">Full Name</label>
+            <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+            <span asp-validation-for="FullName" class="text-danger"></span>
+        </div>
 
-    <div class="form-group">
-        <label asp-for="FullName"></label>
-        <input asp-for="FullName" class="form-control" />
-        <span asp-validation-for="FullName" class="text-danger" />
-    </div>
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label fw-semibold">Email</label>
+            <input asp-for="Email" class="form-control" readonly />
+        </div>
 
-    <div class="form-group">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" />
-        <span asp-validation-for="Email" class="text-danger" />
-    </div>
+        <div class="mb-3">
+            <label asp-for="Role" class="form-label fw-semibold">User Role</label>
+            <select asp-for="Role" class="form-select">
+                <option value="User">User</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
 
-    <div class="form-group">
-        <label asp-for="Password"></label>
-        <input asp-for="Password" class="form-control" />
-        <span asp-validation-for="Password" class="text-danger" />
-    </div>
+        <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle"></i> Save Changes
+        </button>
 
-    <div class="form-group">
-        <label asp-for="Role"></label>
-        <select asp-for="Role" class="form-control">
-            <option value="Admin">Admin</option>
-            <option value="User">User</option>
-        </select>
-        <span asp-validation-for="Role" class="text-danger" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Update</button>
-</form>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+        <a asp-action="All" class="btn btn-secondary ms-2">Cancel</a>
+    </form>
+</div>

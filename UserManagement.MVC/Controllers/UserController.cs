@@ -91,29 +91,45 @@ namespace UserManagement.MVC.Controllers
             };
 
             ViewBag.UserId = id;
+            ViewBag.UserName = user.FullName;
             return View(model);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(string id, RegisterViewModel model)
+        public async Task<IActionResult> Edit(string id, EditUserViewModel model)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.UserId = id;
+                ViewBag.UserName = model.FullName;
                 return View(model);
+            }
 
             var client = _httpClientFactory.CreateClient("API");
             var token = HttpContext.Session.GetString("JWToken");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var json = JsonSerializer.Serialize(model);
+            var updateDto = new
+            {
+                FullName = model.FullName,
+                Role = model.Role
+            };
+
+            var json = JsonSerializer.Serialize(updateDto);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
             var response = await client.PutAsync($"users/{id}", content);
 
             if (response.IsSuccessStatusCode)
-                return RedirectToAction("All");
+            {
+                TempData["Message"] = "✅ User updated successfully.";
+                return RedirectToAction("All"); // Redirect prevents form resubmission
+            }
 
+            ViewBag.UserId = id;
+            ViewBag.UserName = model.FullName;
             ViewBag.Error = "Update failed.";
-            return View(model);
+            return View(model); // This line causes browser to warn on refresh
         }
 
         [HttpGet]
