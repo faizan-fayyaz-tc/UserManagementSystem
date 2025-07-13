@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Security.Claims;
+using UserManagement.API.Exceptions;
 using UserManagement.API.Models;
 
 namespace UserManagement.API.Controllers
@@ -49,13 +50,15 @@ namespace UserManagement.API.Controllers
         public async Task<IActionResult> GetUserById(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound("User not found");
+
+            if (user == null)
+                throw new NotFoundException("User not found");
 
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isAdmin = User.IsInRole("Admin");
 
             if (currentUserId != user.Id && !isAdmin)
-                return Forbid("You can only view your own profile");
+                throw new UnauthorizedAccessException("You can only view your own profile");
 
             var roles = await _userManager.GetRolesAsync(user); 
 
@@ -73,7 +76,9 @@ namespace UserManagement.API.Controllers
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto model)
         {
             var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound("User not found");
+
+            if (user == null)
+                throw new NotFoundException("User not found");
 
             user.FullName = model.FullName;
 
@@ -89,7 +94,8 @@ namespace UserManagement.API.Controllers
 
             if (!result.Succeeded)
             {
-                return BadRequest(result.Errors);
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception("Update failed: " + errors);
             }
 
             return Ok("User Updated Successfully");
@@ -103,8 +109,12 @@ namespace UserManagement.API.Controllers
             if (user == null) return NotFound("User not found");
 
             var result = await _userManager.DeleteAsync(user);
+
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception("Deletion failed: " + errors);
+            }
 
             return Ok("User deleted");
         }
@@ -113,10 +123,12 @@ namespace UserManagement.API.Controllers
         public async Task<IActionResult> UploadProfilePicture(string id, IFormFile file)
         {
             if (file == null || file.Length == 0)
-                return BadRequest("No file uploaded.");
+                throw new Exception("No file uploaded");
 
             var user = await _userManager.FindByIdAsync(id);
-            if (user == null) return NotFound("User not found");
+
+            if (user == null)
+                throw new NotFoundException("User not found");
 
             // Generate unique filename
             var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
@@ -139,5 +151,12 @@ namespace UserManagement.API.Controllers
 
             return Ok("Profile picture uploaded successfully");
         }
+
+        [HttpGet("test-exception")]
+        public IActionResult TestException()
+        {
+            throw new Exception("This is a test exception from controller");
+        }
+
     }
 }

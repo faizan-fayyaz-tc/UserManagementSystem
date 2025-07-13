@@ -122,14 +122,14 @@ namespace UserManagement.MVC.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["Message"] = "✅ User updated successfully.";
-                return RedirectToAction("All"); // Redirect prevents form resubmission
+                TempData["Message"] = " User updated successfully.";
+                return RedirectToAction("All"); 
             }
 
             ViewBag.UserId = id;
             ViewBag.UserName = model.FullName;
             ViewBag.Error = "Update failed.";
-            return View(model); // This line causes browser to warn on refresh
+            return View(model); 
         }
 
         [HttpGet]

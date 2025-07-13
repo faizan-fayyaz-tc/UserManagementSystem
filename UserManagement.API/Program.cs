@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 using UserManagement.API.Data;
+using UserManagement.API.Middleware;
 using UserManagement.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -85,6 +87,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 //Serve files from wwwroot
 app.UseStaticFiles();

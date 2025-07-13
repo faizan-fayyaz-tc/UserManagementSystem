@@ -33,8 +33,12 @@ namespace UserManagement.API.Controllers
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
+
             if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            {
+                throw new Exception("Registration failed: " +
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
 
             await _userManager.AddToRoleAsync(user, dto.Role);
             return Ok("User created");
@@ -45,31 +49,32 @@ namespace UserManagement.API.Controllers
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
 
-            if (user != null && await _userManager.CheckPasswordAsync(user, dto.Password))
+            if (user == null || !(await _userManager.CheckPasswordAsync(user, dto.Password)))
             {
-                var roles = await _userManager.GetRolesAsync(user);
-
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.FullName),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
-
-                foreach (var role in roles)
-                    claims.Add(new Claim(ClaimTypes.Role, role));
-
-                var token = GetToken(claims);
-
-                return Ok(new
-                {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
-                });
+                throw new UnauthorizedAccessException("Invalid email or password.");
             }
 
-            return Unauthorized("Invalid login");
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.FullName),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            foreach (var role in roles)
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+            var token = GetToken(claims);
+
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                expiration = token.ValidTo
+            });
         }
+
 
         private JwtSecurityToken GetToken(List<Claim> claims)
         {
